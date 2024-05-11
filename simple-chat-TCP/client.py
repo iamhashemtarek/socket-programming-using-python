@@ -1,28 +1,24 @@
 from socket import *
 
-SERVER_HOST='127.0.0.1'
-SERVER_ADDRESS=8080
-
 client_socket = socket(AF_INET, SOCK_STREAM)
-client_socket.connect((SERVER_HOST, SERVER_ADDRESS))
+
+SERVER_ADDRESS = ('127.0.0.1', 8080)
 
 try:
-    while True:
-        msg = input('enter a message: ')
-        encoded_msg = msg.encode()
+    client_socket.connect(SERVER_ADDRESS)
 
-        client_socket.sendall(encoded_msg)
+    while True: 
+        message = input('message: ')
+        client_socket.sendall(message.encode())
 
-        if msg.strip().lower() == 'quit':
+        if message.strip().lower() == 'quit':
             break
 
-        received_msg = client_socket.recv(1024)
-        decoded_msg = received_msg.decode()
-        print(f'server: {decoded_msg}')
+        response = client_socket.recv(1024).decode()
+        print(f'server: {response}')
 
-        if decoded_msg.strip().lower() == 'quit':
-            break
+
 except Exception as err:
-    print(f'error: {err}')       
-
-client_socket.close()
+    print('Error: ', err)
+finally: 
+    client_socket.close()
