@@ -1,24 +1,44 @@
-from socket import *
+from socket import * 
+from threading import *
 
-client_socket = socket(AF_INET, SOCK_STREAM)
+def send_message(client_socket):
+    while True:
+        try:
+            message = input('message: ')
+            client_socket.sendall(message.encode())
 
-SERVER_ADDRESS = ('127.0.0.1', 8080)
+            if message.strip().lower() == 'quit':
+                break
+        except Exception as err: 
+            print('Error ', err)
 
-try:
+def recv_message(client_socket):
+    while True: 
+        try:
+            message = client_socket.recv(1024).decode()
+            print(f'message: {message}')
+
+            if message.strip().lower() == 'quit':
+                break
+
+        except Exception as err:
+            print('Error ', err)
+
+def main():
+    SERVER_ADDRESS = ('127.0.0.1', 8080)
+    client_socket = socket(AF_INET, SOCK_STREAM)
     client_socket.connect(SERVER_ADDRESS)
 
-    while True: 
-        message = input('message: ')
-        client_socket.sendall(message.encode())
+    send_thread = Thread(target=send_message, args=((client_socket,)))
+    recv_thread = Thread(target=recv_message, args=((client_socket,)))
 
-        if message.strip().lower() == 'quit':
-            break
+    send_thread.start()
+    recv_thread.start()
 
-        response = client_socket.recv(1024).decode()
-        print(f'server: {response}')
+    send_thread.join()
+    recv_thread.join()
 
-
-except Exception as err:
-    print('Error: ', err)
-finally: 
     client_socket.close()
+
+if __name__ == '__main__':
+    main()

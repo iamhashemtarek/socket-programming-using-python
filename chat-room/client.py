@@ -1,52 +1,42 @@
+from socket import * 
 from threading import *
-from socket import *
 
-def send_messages(client_socket):
+def send_message(client_socket):
     while True:
         try:
-            msg = input('message: ')
-            encoded_msg = msg.encode()
+            message = input('message: ')
+            client_socket.sendall(message.encode())
 
-            client_socket.sendall(encoded_msg)
+            if message.strip().lower() == 'quit':
+                break
+        except Exception as err: 
+            print('Error ', err)
 
-            if msg.strip().lower() == 'quit':
+def recv_message(client_socket):
+    while True: 
+        try:
+            message = client_socket.recv(1024).decode()
+            print(f'message: {message}')
+
+            if message.strip().lower() == 'quit':
                 break
 
         except Exception as err:
-            print(f'error: {err}')
-            break
-
-def receive_messages(client_socket, client_address):
-    while True:
-        try:
-            received_msg = client_socket.recv(1024)
-            decoded_msg = received_msg.decode()
-
-            print(f'{client_address}: {decoded_msg}')
-
-
-            if decoded_msg.strip().lower() == 'quit':
-                break
-
-        except Exception as err:
-            print(f'error: {err}')
-            break
+            print('Error ', err)
 
 def main():
-    SERVER_ADDRESS='127.0.0.1'
-    SERVER_PORT=8080
-
+    SERVER_ADDRESS = ('127.0.0.1', 8080)
     client_socket = socket(AF_INET, SOCK_STREAM)
-    client_socket.connect((SERVER_ADDRESS,SERVER_PORT))
+    client_socket.connect(SERVER_ADDRESS)
 
-    send_thread = Thread(target=send_messages, args=(client_socket,))
-    receive_thread = Thread(target=receive_messages, args=(client_socket, client_socket.getpeername()))
+    send_thread = Thread(target=send_message, args=((client_socket,)))
+    recv_thread = Thread(target=recv_message, args=((client_socket,)))
 
     send_thread.start()
-    receive_thread.start()
+    recv_thread.start()
 
     send_thread.join()
-    receive_thread.join()
+    recv_thread.join()
 
     client_socket.close()
 

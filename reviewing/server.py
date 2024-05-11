@@ -1,32 +1,43 @@
 from socket import *
+from threading import *
 
-HOST = '127.0.0.1'
-PORT = 8080
+clients = []
 
-server_socket = socket(AF_INET, SOCK_STREAM)
-
-try: 
-    server_socket.bind((HOST, PORT))
-
-    server_socket.listen()
-    print(f'server is listening on port {PORT}')
-
-    client_socket, client_address = server_socket.accept()
-    print(f'connection from {client_address} has been established')
-
+def handleClient(client_socket, client_address): 
+    print(f'connection with {client_address} has been established')
     while True: 
-        message = client_socket.recv(1024).decode()
-        print(f'client: {message}')
+        try: 
+            message = client_socket.recv(1024).decode()
+            for client in clients:
+                if(client != client_socket):
+                    client.sendall(message.encode())
+            
+            if message.strip().lower() == 'quit':
+                break
+        except Exception as err:
+            print('Error:', err)
 
-        if message.strip().lower() == 'quit':
+    clients.remove(client_socket)   
+    print(f'client {client_address} disconnected')         
+
+def main():
+    SERVER_ADDRESS = ('127.0.0.1', 8080)
+    server_socket = socket(AF_INET, SOCK_STREAM)
+    server_socket.bind(SERVER_ADDRESS)
+    server_socket.listen()
+    print(f'server is listening on {SERVER_ADDRESS}')
+    while True:
+        try:
+            client_socket, client_address = server_socket.accept()
+            clients.append(client_socket)
+            client_thread = Thread(target=handleClient, args=((client_socket, client_address)))
+
+            client_thread.start()
+
+        except Exception as err:
+            print('Error: ', err)
             break
-
-        response = input('response: ')
-        client_socket.sendall(response.encode())
-
-except Exception as err:
-    print('Error: ', err)
-
-finally:
-    client_socket.close()
     server_socket.close()
+
+if __name__ == '__main__':
+    main()
