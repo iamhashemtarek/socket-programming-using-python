@@ -3,7 +3,7 @@
 ## simple-chat-TCP 
   - tcp based
   - client **sends first** then server response
-## simple-chat-udp
+## simple-chat-UDP
   - udp based
   - client **sends first** then server response 
 ## char-room
