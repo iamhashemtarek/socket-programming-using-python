@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import messagebox
 import random
 
 def check_win():
@@ -29,6 +30,7 @@ def button_click(row, col):
         if check_win():
             label.config(text=f'{current_player} wins')
             disable_buttons()
+            messagebox.showinfo(title='congrats', message=f'winner is {current_player}')
         elif check_draw():
             label.config(text='Draw')
             disable_buttons()
@@ -37,6 +39,7 @@ def button_click(row, col):
                 current_player = players[1]
             else:
                 current_player = players[0]
+            label.config(text=f'{current_player} turn')
 
 def reset_game():
     for row in range(3):
