@@ -6,9 +6,11 @@
 ## simple-chat-UDP
   - udp based
   - client **sends first** then server response 
-## char-room
+## chat-room
   - tcp based
   - one client sends a message then server send this message to all other clients
-
+## chat-btw-2-clients
+  - tcp based
+  - only two clients can chat with each other, any other connections will be ignoreds
 ### notes:
   - send 'quit' to terminate the session
