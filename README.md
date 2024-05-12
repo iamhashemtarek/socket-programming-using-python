@@ -11,6 +11,6 @@
   - one client sends a message then server send this message to all other clients
 ## chat-btw-2-clients
   - tcp based
-  - only two clients can chat with each other, any other connections will be ignoreds
+  - only two clients can chat with each other, any other connections will be ignored
 ### notes:
   - send 'quit' to terminate the session
