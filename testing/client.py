@@ -1,44 +1,75 @@
-from socket import * 
-from threading import *
+import tkinter as tk
+from tkinter import messagebox
 
-def send_message(client_socket):
-    while True:
-        try:
-            message = input('message: ')
-            client_socket.sendall(message.encode())
+# Function to check for a win
+def check_win():
+    for i in range(3):
+        if board[i][0] == board[i][1] == board[i][2] != "":
+            return True
+        if board[0][i] == board[1][i] == board[2][i] != "":
+            return True
+    if board[0][0] == board[1][1] == board[2][2] != "":
+        return True
+    if board[0][2] == board[1][1] == board[2][0] != "":
+        return True
+    return False
 
-            if message.strip().lower() == 'quit':
-                break
-        except Exception as err: 
-            print('Error ', err)
+# Function to check for a draw
+def check_draw():
+    for row in board:
+        for cell in row:
+            if cell == "":
+                return False
+    return True
 
-def recv_message(client_socket):
-    while True: 
-        try:
-            message = client_socket.recv(1024).decode()
-            print(f'message: {message}')
+# Function to handle button click
+def button_click(row, col):
+    global current_player
 
-            if message.strip().lower() == 'quit':
-                break
+    if board[row][col] == "" and not winner:
+        board[row][col] = current_player
+        buttons[row][col].config(text=current_player)
+        
+        if check_win():
+            messagebox.showinfo("Tic-Tac-Toe", f"Player {current_player} wins!")
+            reset_game()
+        elif check_draw():
+            messagebox.showinfo("Tic-Tac-Toe", "It's a draw!")
+            reset_game()
+        else:
+            current_player = "O" if current_player == "X" else "X"
 
-        except Exception as err:
-            print('Error ', err)
+# Function to reset the game
+def reset_game():
+    global board, current_player, winner
+    board = [["" for _ in range(3)] for _ in range(3)]
+    for i in range(3):
+        for j in range(3):
+            buttons[i][j].config(text="", state=tk.NORMAL)
+    current_player = "X"
+    winner = False
 
-def main():
-    SERVER_ADDRESS = ('127.0.0.1', 8080)
-    client_socket = socket(AF_INET, SOCK_STREAM)
-    client_socket.connect(SERVER_ADDRESS)
+# Initialize variables
+board = [["" for _ in range(3)] for _ in range(3)]
+current_player = "X"
+winner = False
 
-    send_thread = Thread(target=send_message, args=((client_socket,)))
-    recv_thread = Thread(target=recv_message, args=((client_socket,)))
+# Create main window
+root = tk.Tk()
+root.title("Tic-Tac-Toe")
 
-    send_thread.start()
-    recv_thread.start()
+# Create buttons for the board
+buttons = [[None, None, None] for _ in range(3)]
+for i in range(3):
+    for j in range(3):
+        buttons[i][j] = tk.Button(root, text="", font=("Helvetica", 20), width=5, height=2,
+                                  command=lambda row=i, col=j: button_click(row, col))
+        buttons[i][j].grid(row=i, column=j, padx=5, pady=5)
 
-    send_thread.join()
-    recv_thread.join()
+# Create a reset button
+reset_button = tk.Button(root, text="Reset", font=("Helvetica", 12), command=reset_game)
+reset_button.grid(row=3, columnspan=3, padx=5, pady=10)
 
-    client_socket.close()
-
-if __name__ == '__main__':
-    main()
+# Start the event loop
+root.mainloop()
+    
