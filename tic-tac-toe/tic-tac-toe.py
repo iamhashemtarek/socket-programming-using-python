@@ -5,6 +5,7 @@ import random
 def check_win():
     for i in range(3):
         if board[i][0]['text'] == board[i][1]['text']  == board[i][2]['text']  != "":
+            #board[i][0]['bg'] = board[i][1]['bg']  = board[i][2]['bg'] = 'red'
             return True
         if board[0][i]['text']  == board[1][i]['text']  == board[2][i]['text']  != "":
             return True
