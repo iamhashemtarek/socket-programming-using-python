@@ -16,8 +16,8 @@
   - only two clients can chat with each other, any other connections will be ignored
 
 ## tic-tac-toe
-  - offline tic-tac-
-  - run to instance of tic-tac-toe.py file and try
+  - offline tic-tac-toe
+  - run two instance of tic-tac-toe.py file and try
 ## online tic-tac-toe
   - uses socket for online tic-tac-toe
   - run server.py first then run client.py
