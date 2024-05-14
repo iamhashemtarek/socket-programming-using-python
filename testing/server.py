@@ -1,52 +1,80 @@
-# server.py
-import socket
-import threading
+import random
+from socket import *
+from threading import Thread
 
-HOST = '127.0.0.1'
-PORT = 65432
+# Game choices
+choices = ['rock', 'paper', 'scissors']
 
-clients = {}
-rounds_played = 0
+# Initialize scores
+user_score = 0
+computer_score = 0
 
-def handle_client(conn, addr, player_name):
-    global rounds_played
-    conn.send("Welcome to Rock Paper Scissors!\n".encode())
+# Game function
+def play_game(client_socket):
+    global user_score
+    global computer_score
     while True:
-        data = conn.recv(1024).decode()
-        if not data:
+        # Receive user choice
+        user_choice = client_socket.recv(1024).decode()
+        if not user_choice:
             break
-        if data == "QUIT":
-            conn.close()
-            del clients[player_name]
-            print(f"{player_name} disconnected.")
+
+        # Get computer choice
+        computer_choice = random.choice(choices)
+
+        # Determine winner
+        if user_choice == computer_choice:
+            result = f"Both players selected {user_choice}. It's a tie!"
+        elif user_choice == 'rock':
+            if computer_choice == 'scissors':
+                user_score += 1
+                result = f"Rock smashes scissors! You scored 1 point."
+            else:
+                computer_score += 1
+                result = f"Paper covers rock! Computer scored 1 point."
+        elif user_choice == 'paper':
+            if computer_choice == 'rock':
+                user_score += 1
+                result = f"Paper covers rock! You scored 1 point."
+            else:
+                computer_score += 1
+                result = f"Scissors cuts paper! Computer scored 1 point."
+        elif user_choice == 'scissors':
+            if computer_choice == 'paper':
+                user_score += 1
+                result = f"Scissors cuts paper! You scored 1 point."
+            else:
+                computer_score += 1
+                result = f"Rock smashes scissors! Computer scored 1 point."
+
+        # Send game results to client
+        client_socket.send(result.encode('utf-8'))
+
+        # Send updated scores to client
+        score_string = f"Score: {user_score} - {computer_score}"
+        client_socket.send(score_string.encode('utf-8'))
+
+        # End game if either player reaches 3 points
+        if user_score == 3:
+            client_socket.send("You win!".encode('utf-8'))
             break
-        print(f"{player_name}: {data}")
-        for client_name, client_conn in clients.items():
-            if client_name != player_name:
-                client_conn.send(f"{player_name}: {data}".encode())
-    rounds_played += 1
+        elif computer_score == 3:
+            client_socket.send("Computer wins!".encode('utf-8'))
+            break
 
-    if rounds_played == len(clients) * int(num_rounds):
-        print("All rounds played. Game over.")
-        for client_conn in clients.values():
-            client_conn.send("Game over.".encode())
+# Start server
+s = socket(AF_INET, SOCK_STREAM)
+host = "127.0.0.1"
+port = 7002
+s.bind((host, port))
+s.listen(1)
+print("Server is running...")
 
-def accept_clients():
-    while True:
-        conn, addr = server.accept()
-        player_name = conn.recv(1024).decode()
-        clients[player_name] = conn
-        print(f"{player_name} connected from {addr}.")
-        threading.Thread(target=handle_client, args=(conn, addr, player_name)).start()
+while True:
+    # Wait for client connection
+    client_socket, addr = s.accept()
+    print(f"Connection from {addr} established.")
 
-def start_server():
-    global server
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind((HOST, PORT))
-    server.listen()
-    print(f"Server started on {HOST}:{PORT}")
-    accept_clients()
-
-if __name__ == "__main__":
-    num_rounds = input("Enter number of rounds: ")
-    start_server()
+    # Start a new thread for each game
+    t = Thread(target=play_game, args=(client_socket,))
+    t.start()
