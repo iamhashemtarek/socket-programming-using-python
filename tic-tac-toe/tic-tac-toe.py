@@ -63,7 +63,7 @@ def enable_buttons():
 window = Tk()
 window.title('tic-tac-toe')
 
-players = ['x', 'y']
+players = ['x', 'o']
 current_player = random.choice(players)
 
 board = [
